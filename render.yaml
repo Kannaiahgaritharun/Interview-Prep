@@ -20,5 +20,4 @@ services:
 databases:
   - name: interview-prep-db
     databaseName: interview_db
-    user: postgres
     plan: free
