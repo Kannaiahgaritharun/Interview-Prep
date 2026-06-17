@@ -1,5 +1,5 @@
 # Interview Preparation Portal
-https://interview-prep-app-6inj.onrender.com
+**Live project:** https://interview-prep-app-6inj.onrender.com
 
 A complete full-stack web application for tracking coding interview preparation. Built with FastAPI, PostgreSQL, SQLAlchemy, and a Bootstrap-based frontend.
 
