@@ -1,4 +1,5 @@
 # Interview Preparation Portal
+https://interview-prep-app-6inj.onrender.com
 
 A complete full-stack web application for tracking coding interview preparation. Built with FastAPI, PostgreSQL, SQLAlchemy, and a Bootstrap-based frontend.
 
@@ -45,7 +46,7 @@ alembic upgrade head
 ```bash
 uvicorn app.main:app --reload
 ```
-The portal will be available at `http://127.0.0.1:8000`.
+The portal will be available at (https://interview-prep-app-6inj.onrender.com)
 
 ## API Endpoints
 - **Auth**: `/api/auth/register`, `/api/auth/login`, `/api/auth/logout`
