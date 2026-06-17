@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Interview Prep Portal{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Dashboard</h2>
+
+<div class="row g-4" id="statsContainer">
+    <!-- Stats will be loaded here via JS -->
+    <div class="text-center">Loading stats...</div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">Questions by Topic</div>
+            <ul class="list-group list-group-flush" id="topicsList">
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-6 mt-4 mt-md-0">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-dark">Quick Actions</div>
+            <div class="card-body">
+                <a href="/questions/add" class="btn btn-success mb-2 w-100">Add New Question</a>
+                <a href="/questions" class="btn btn-primary w-100">Browse Questions</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('/api/dashboard/');
+        if (response.ok) {
+            const stats = await response.json();
+            
+            document.getElementById('statsContainer').innerHTML = `
+                <div class="col-md-3"><div class="card text-center bg-light"><div class="card-body"><h5>Total</h5><h3>${stats.total_questions}</h3></div></div></div>
+                <div class="col-md-3"><div class="card text-center text-white bg-success"><div class="card-body"><h5>Solved</h5><h3>${stats.total_solved}</h3></div></div></div>
+                <div class="col-md-3"><div class="card text-center text-white bg-danger"><div class="card-body"><h5>Unsolved</h5><h3>${stats.total_unsolved}</h3></div></div></div>
+                <div class="col-md-3"><div class="card text-center text-white bg-info"><div class="card-body"><h5>Completion</h5><h3>${stats.completion_percentage}%</h3></div></div></div>
+                
+                <div class="col-md-4"><div class="card text-center border-success"><div class="card-body text-success"><h6>Easy Solved</h6><h4>${stats.easy_solved}</h4></div></div></div>
+                <div class="col-md-4"><div class="card text-center border-warning"><div class="card-body text-warning"><h6>Medium Solved</h6><h4>${stats.medium_solved}</h4></div></div></div>
+                <div class="col-md-4"><div class="card text-center border-danger"><div class="card-body text-danger"><h6>Hard Solved</h6><h4>${stats.hard_solved}</h4></div></div></div>
+            `;
+            
+            const topicsList = document.getElementById('topicsList');
+            if (stats.questions_by_topic.length > 0) {
+                topicsList.innerHTML = stats.questions_by_topic.map(t => 
+                    `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        ${t.topic}
+                        <span class="badge bg-primary rounded-pill">${t.count}</span>
+                    </li>`
+                ).join('');
+            } else {
+                topicsList.innerHTML = '<li class="list-group-item text-muted">No solved questions yet.</li>';
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        document.getElementById('statsContainer').innerHTML = '<div class="alert alert-danger">Failed to load statistics.</div>';
+    }
+});
+</script>
+{% endblock %}

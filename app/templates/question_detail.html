@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Question Details - Interview Prep Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-7">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0" id="qTitle">Loading...</h4>
+                <span class="badge bg-light text-dark" id="qDifficulty"></span>
+            </div>
+            <div class="card-body">
+                <p><strong>Topic:</strong> <span id="qTopic"></span></p>
+                <p><strong>LeetCode #:</strong> <span id="qLCNum"></span></p>
+                <div id="qLinkContainer" class="d-none mt-3">
+                    <a id="qLink" href="#" target="_blank" class="btn btn-outline-primary">Solve Problem</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">My Progress</h5>
+            </div>
+            <div class="card-body">
+                <div id="progressAlert" class="alert d-none"></div>
+                <form id="progressForm">
+                    <input type="hidden" id="question_id" value="{{ question_id }}">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="pStatus" required>
+                            <option value="Unsolved">Unsolved</option>
+                            <option value="Solved">Solved</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" id="pNotes" rows="4" placeholder="Add your approach, time/space complexity..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Next Revision Date</label>
+                        <input type="date" class="form-control" id="pNextRevision">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100">Save Progress</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const questionId = document.getElementById('question_id').value;
+
+async function loadData() {
+    try {
+        // Load Question details
+        const qRes = await fetch(`/api/questions/${questionId}`);
+        if (qRes.ok) {
+            const q = await qRes.json();
+            document.getElementById('qTitle').textContent = q.title;
+            document.getElementById('qTopic').textContent = q.topic;
+            document.getElementById('qLCNum').textContent = q.leetcode_number || 'N/A';
+            
+            const diffBadge = document.getElementById('qDifficulty');
+            diffBadge.textContent = q.difficulty;
+            diffBadge.className = `badge ${q.difficulty === 'Easy' ? 'bg-success' : (q.difficulty === 'Medium' ? 'bg-warning text-dark' : 'bg-danger')}`;
+            
+            if (q.problem_link) {
+                document.getElementById('qLink').href = q.problem_link;
+                document.getElementById('qLinkContainer').classList.remove('d-none');
+            }
+        } else {
+            document.getElementById('qTitle').textContent = 'Question Not Found';
+        }
+
+        // Load Progress details
+        const pRes = await fetch(`/api/progress/${questionId}`);
+        if (pRes.ok) {
+            const p = await pRes.json();
+            document.getElementById('pStatus').value = p.status;
+            document.getElementById('pNotes').value = p.notes || '';
+            if (p.next_revision) {
+                document.getElementById('pNextRevision').value = p.next_revision;
+            }
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+document.getElementById('progressForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const data = {
+        question_id: parseInt(questionId),
+        status: document.getElementById('pStatus').value,
+        notes: document.getElementById('pNotes').value,
+        next_revision: document.getElementById('pNextRevision').value || null
+    };
+    
+    try {
+        const response = await fetch('/api/progress/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const alertDiv = document.getElementById('progressAlert');
+        alertDiv.classList.remove('d-none', 'alert-success', 'alert-danger');
+        
+        if (response.ok) {
+            alertDiv.classList.add('alert-success');
+            alertDiv.textContent = 'Progress saved successfully!';
+        } else {
+            const err = await response.json();
+            alertDiv.classList.add('alert-danger');
+            alertDiv.textContent = err.detail || 'Failed to save progress';
+        }
+        
+        setTimeout(() => alertDiv.classList.add('d-none'), 3000);
+    } catch (err) {
+        console.error(err);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', loadData);
+</script>
+{% endblock %}

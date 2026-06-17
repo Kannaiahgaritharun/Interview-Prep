@@ -1,0 +1,7 @@
+# Ignore frontend files from GitHub language statistics
+# This forces the repository to appear primarily as Python/Database
+app/templates/* linguist-detectable=false
+app/static/* linguist-detectable=false
+*.html linguist-detectable=false
+*.css linguist-detectable=false
+*.js linguist-detectable=false

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question - Interview Prep Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Add New Question</h4>
+            </div>
+            <div class="card-body">
+                <div id="error-message" class="alert alert-danger d-none"></div>
+                <form id="addQuestionForm">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Problem Title *</label>
+                        <input type="text" class="form-control" id="title" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="leetcode_number" class="form-label">Leetcode Number</label>
+                            <input type="number" class="form-control" id="leetcode_number">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="difficulty" class="form-label">Difficulty *</label>
+                            <select class="form-select" id="difficulty" required>
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">Topic *</label>
+                        <select class="form-select" id="topic" required>
+                            <option value="">Select Topic</option>
+                            <option value="Arrays">Arrays</option>
+                            <option value="Hashing">Hashing</option>
+                            <option value="Strings">Strings</option>
+                            <option value="Linked List">Linked List</option>
+                            <option value="Stack">Stack</option>
+                            <option value="Queue">Queue</option>
+                            <option value="Trees">Trees</option>
+                            <option value="Graphs">Graphs</option>
+                            <option value="Dynamic Programming">Dynamic Programming</option>
+                            <option value="Backtracking">Backtracking</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="problem_link" class="form-label">Problem Link (URL)</label>
+                        <input type="url" class="form-control" id="problem_link">
+                    </div>
+                    <button type="submit" class="btn btn-success">Save Question</button>
+                    <a href="/questions" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('addQuestionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const lc_num = document.getElementById('leetcode_number').value;
+    
+    const data = {
+        title: document.getElementById('title').value,
+        leetcode_number: lc_num ? parseInt(lc_num) : null,
+        difficulty: document.getElementById('difficulty').value,
+        topic: document.getElementById('topic').value,
+        problem_link: document.getElementById('problem_link').value || null
+    };
+    
+    try {
+        const response = await fetch('/api/questions/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            window.location.href = '/questions';
+        } else {
+            const errData = await response.json();
+            const errDiv = document.getElementById('error-message');
+            errDiv.textContent = errData.detail || 'Failed to add question';
+            errDiv.classList.remove('d-none');
+        }
+    } catch (err) {
+        console.error(err);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Questions - Interview Prep Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Questions</h2>
+    <a href="/questions/add" class="btn btn-primary">Add Question</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form id="filterForm" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search by title...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="topicFilter">
+                    <option value="">All Topics</option>
+                    <option value="Arrays">Arrays</option>
+                    <option value="Hashing">Hashing</option>
+                    <option value="Strings">Strings</option>
+                    <option value="Linked List">Linked List</option>
+                    <option value="Stack">Stack</option>
+                    <option value="Queue">Queue</option>
+                    <option value="Trees">Trees</option>
+                    <option value="Graphs">Graphs</option>
+                    <option value="Dynamic Programming">Dynamic Programming</option>
+                    <option value="Backtracking">Backtracking</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="difficultyFilter">
+                    <option value="">All Difficulties</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive bg-white rounded shadow-sm">
+    <table class="table table-hover mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>LC #</th>
+                <th>Title</th>
+                <th>Difficulty</th>
+                <th>Topic</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="questionsTableBody">
+            <tr><td colspan="5" class="text-center">Loading questions...</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadQuestions() {
+    const search = document.getElementById('searchInput').value;
+    const topic = document.getElementById('topicFilter').value;
+    const difficulty = document.getElementById('difficultyFilter').value;
+    
+    let url = '/api/questions/?skip=0&limit=100';
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (topic) url += `&topic=${encodeURIComponent(topic)}`;
+    if (difficulty) url += `&difficulty=${encodeURIComponent(difficulty)}`;
+    
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            const questions = await response.json();
+            const tbody = document.getElementById('questionsTableBody');
+            
+            if (questions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No questions found.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = questions.map(q => {
+                let badgeClass = q.difficulty === 'Easy' ? 'bg-success' : (q.difficulty === 'Medium' ? 'bg-warning text-dark' : 'bg-danger');
+                return `
+                <tr>
+                    <td>${q.leetcode_number || '-'}</td>
+                    <td><a href="/questions/${q.id}" class="text-decoration-none">${q.title}</a></td>
+                    <td><span class="badge ${badgeClass}">${q.difficulty}</span></td>
+                    <td>${q.topic}</td>
+                    <td><a href="/questions/${q.id}" class="btn btn-sm btn-outline-primary">View</a></td>
+                </tr>
+                `;
+            }).join('');
+        }
+    } catch (err) {
+        console.error(err);
+        document.getElementById('questionsTableBody').innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading questions.</td></tr>';
+    }
+}
+
+document.getElementById('filterForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    loadQuestions();
+});
+
+document.addEventListener('DOMContentLoaded', loadQuestions);
+</script>
+{% endblock %}
